@@ -31,7 +31,7 @@ const handleFileChange = async (event) => {
 };
 
 
-function analyzeChat(fileContent){
+async function analyzeChat(fileContent){
   const lines = fileContent.split('\n'); // 将文件内容按行拆分成数组
   // console.log(lines)
   const speakingRecords =new Map()
