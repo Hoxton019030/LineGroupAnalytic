@@ -34,7 +34,8 @@ const handleFileChange = async (event) => {
     test(reader.result)
     calcJoin(reader.result)
     calcLeave(reader.result)
-    
+    calcImage(reader.result)
+    calcSticker(reader.result)
 
   };
 
@@ -170,6 +171,74 @@ async function calcLeave(fileContent) {
     console.log('按照離開次數排序後的統計結果：', sortedRecords);
 
 }
+
+async function calcImage(fileContent) {
+    const joinRecord = new Map();
+    let currentDate =''
+    const regex2 = /\d{4}\/\d{2}\/\d{2}/;
+    const lines = fileContent.split('\n');
+    const sendImageregex = /^[\u4E00-\u9FFF]{2}\d{2}:\d{2}\s.*\[照片\]$/;
+    // const joinMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,} 加入聊天/;
+    lines.forEach(line => {
+
+        const dayMatch = line.match(regex2);
+        if (dayMatch) {
+            const day = dayMatch[0];
+            // console.log(day)
+            if (!joinRecord.has(day)) {
+              joinRecord.set(day, 0);
+                currentDate=day
+            }
+        }
+        const sendImageMessage = line.match(sendImageregex);
+        console.log(sendImageMessage==null)
+        if(sendImageMessage){
+          console.log(sendImageMessage[0])
+          // console.log('訊息圖片')
+          console.log(sendImageMessage[0])
+          joinRecord.set(currentDate,joinRecord.get(currentDate)+1)
+        }
+    });
+    console.log(joinRecord)
+
+
+    // const sortedRecords = Array.from(joinRecord.entries()).sort((a, b) => b[1] - a[1]);
+    // console.log('按照離開次數排序後的統計結果：', sortedRecords);
+
+}
+
+async function calcSticker(fileContent) {
+    const joinRecord = new Map();
+    let currentDate =''
+    const regex2 = /\d{4}\/\d{2}\/\d{2}/;
+    const lines = fileContent.split('\n');
+    const leaveMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,}離開聊天/;
+    // const joinMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,} 加入聊天/;
+    lines.forEach(line => {
+
+        const dayMatch = line.match(regex2);
+        if (dayMatch) {
+            const day = dayMatch[0];
+            // console.log(day)
+            if (!joinRecord.has(day)) {
+              joinRecord.set(day, 0);
+                currentDate=day
+            }
+        }
+        const joinMessage = line.match(leaveMessageRegex);
+        if(joinMessage){
+          joinRecord.set(currentDate,joinRecord.get(currentDate)+1)
+        }
+    });
+    console.log(joinRecord)
+
+
+    const sortedRecords = Array.from(joinRecord.entries()).sort((a, b) => b[1] - a[1]);
+    console.log('按照離開次數排序後的統計結果：', sortedRecords);
+
+}
+
+
 
 
 
