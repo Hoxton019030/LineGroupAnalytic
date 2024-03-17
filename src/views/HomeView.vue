@@ -1,42 +1,35 @@
 <template>
   <div class="home">
     <input type="file" name="file" id="" @:change="handleFileChange"  accept="text/plain">
-    <button @click="test">送出</button>
-    <h2>文件内容：</h2>
-      <!-- <pre>{{ chatStatic }}</pre> -->
-      <ul>
-        <li v-for="(record, index) in chatStatic" :key="index">
-          {{index+1 }}     {{ record[0] }}: {{ record[1] }}則
-        </li>
-      </ul>
-
+    <button>送出</button>
   </div>
+  <SpeakStatisticVue></SpeakStatisticVue>
 </template>
 
 
 <script setup>
 
-import { ref } from 'vue'
-
-
+import { computed, ref } from 'vue'
+import SpeakStatisticVue from './Statistic/SpeakStatistic.vue';
+import { useStore } from 'vuex';
+const store = useStore();
 let fileContent = ref('')
 let chatStatic = ref(null)
 
 const handleFileChange = async (event) => {
   const file = event.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
-
   reader.onload = async () => {
-    fileContent.value = reader.result;
-    fileContent=await analyzeChat(reader.result);
-    test(reader.result)
-    calcJoin(reader.result)
-    calcLeave(reader.result)
-    calcImage(reader.result)
-    calcSticker(reader.result)
-
+    store.commit('setLineContent',reader.result)
+    const lineContent = computed(() => store.state.lineContent);
+    const speakerRank=await analyzeChat(lineContent.value)
+    store.commit('setSpeakerRank',speakerRank)
+    const speakerRank2 = computed(() => store.state.speakerRank);
+    console.log(speakerRank2)
+    // fileContent.value = reader.result;
+    // fileContent=await analyzeChat(reader.result);
+    // calcImage(reader.result)
   };
 
   reader.readAsText(file);
@@ -133,7 +126,7 @@ async function calcJoin(fileContent) {
           joinRecord.set(currentDate,joinRecord.get(currentDate)+1)
         }
     });
-    console.log(joinRecord)
+    // console.log(joinRecord)
 
 
     const sortedRecords = Array.from(joinRecord.entries()).sort((a, b) => b[1] - a[1]);
@@ -149,7 +142,6 @@ async function calcLeave(fileContent) {
     const leaveMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,}離開聊天/;
     // const joinMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,} 加入聊天/;
     lines.forEach(line => {
-
         const dayMatch = line.match(regex2);
         if (dayMatch) {
             const day = dayMatch[0];
@@ -164,7 +156,7 @@ async function calcLeave(fileContent) {
           joinRecord.set(currentDate,joinRecord.get(currentDate)+1)
         }
     });
-    console.log(joinRecord)
+    // console.log(joinRecord)
 
 
     const sortedRecords = Array.from(joinRecord.entries()).sort((a, b) => b[1] - a[1]);
@@ -173,68 +165,28 @@ async function calcLeave(fileContent) {
 }
 
 async function calcImage(fileContent) {
-    const joinRecord = new Map();
-    let currentDate =''
-    const regex2 = /\d{4}\/\d{2}\/\d{2}/;
     const lines = fileContent.split('\n');
-    const sendImageregex = /^[\u4E00-\u9FFF]{2}\d{2}:\d{2}\s.*\[照片\]$/;
     // const joinMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,} 加入聊天/;
+    let imageCount =0
     lines.forEach(line => {
-
-        const dayMatch = line.match(regex2);
-        if (dayMatch) {
-            const day = dayMatch[0];
-            // console.log(day)
-            if (!joinRecord.has(day)) {
-              joinRecord.set(day, 0);
-                currentDate=day
-            }
-        }
-        const sendImageMessage = line.match(sendImageregex);
-        console.log(sendImageMessage==null)
-        if(sendImageMessage){
-          console.log(sendImageMessage[0])
-          // console.log('訊息圖片')
-          console.log(sendImageMessage[0])
-          joinRecord.set(currentDate,joinRecord.get(currentDate)+1)
-        }
+      if(line.includes('[照片]')){
+        imageCount++
+      }
     });
-    console.log(joinRecord)
-
-
-    // const sortedRecords = Array.from(joinRecord.entries()).sort((a, b) => b[1] - a[1]);
-    // console.log('按照離開次數排序後的統計結果：', sortedRecords);
-
+    console.log('照片總共有'+imageCount)
 }
 
+
+
 async function calcSticker(fileContent) {
-    const joinRecord = new Map();
-    let currentDate =''
-    const regex2 = /\d{4}\/\d{2}\/\d{2}/;
-    const lines = fileContent.split('\n');
-    const leaveMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,}離開聊天/;
-    // const joinMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,} 加入聊天/;
+  const lines = fileContent.split('\n');
+    let stickerCount =0
     lines.forEach(line => {
-
-        const dayMatch = line.match(regex2);
-        if (dayMatch) {
-            const day = dayMatch[0];
-            // console.log(day)
-            if (!joinRecord.has(day)) {
-              joinRecord.set(day, 0);
-                currentDate=day
-            }
-        }
-        const joinMessage = line.match(leaveMessageRegex);
-        if(joinMessage){
-          joinRecord.set(currentDate,joinRecord.get(currentDate)+1)
-        }
+      if(line.includes('[貼圖]')){
+        stickerCount++
+      }
     });
-    console.log(joinRecord)
-
-
-    const sortedRecords = Array.from(joinRecord.entries()).sort((a, b) => b[1] - a[1]);
-    console.log('按照離開次數排序後的統計結果：', sortedRecords);
+    console.log('貼圖總共有'+stickerCount)
 
 }
 
