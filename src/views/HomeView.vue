@@ -1,9 +1,15 @@
 <template>
   <div class="home">
-    <input type="file" name="file" id="" @:change="handleFileChange" accept="text/plain">
+    <input type="file" name="file" id="" @:change="handleFileChange"  accept="text/plain">
     <button @click="test">送出</button>
     <h2>文件内容：</h2>
-      <pre>{{ chatStatic }}</pre>
+      <!-- <pre>{{ chatStatic }}</pre> -->
+      <ul>
+        <li v-for="(record, index) in chatStatic" :key="index">
+          {{index+1 }}     {{ record[0] }}: {{ record[1] }}則
+        </li>
+      </ul>
+
   </div>
 </template>
 
@@ -25,6 +31,11 @@ const handleFileChange = async (event) => {
   reader.onload = async () => {
     fileContent.value = reader.result;
     fileContent=await analyzeChat(reader.result);
+    test(reader.result)
+    calcJoin(reader.result)
+    calcLeave(reader.result)
+    
+
   };
 
   reader.readAsText(file);
@@ -61,8 +72,102 @@ async function analyzeChat(fileContent){
   const sortedRecords = Array.from(speakingRecords.entries())
     .sort((a, b) => b[1] - a[1]); // 根据值大小排序，从大到小
     chatStatic.value = sortedRecords;
-  console.log(sortedRecords)
+  // console.log(sortedRecords)
   return sortedRecords;
+
+}
+
+async function test(fileContent) {
+    const lines = fileContent.split('\n');
+    const regex = /[\u4E00-\u9FFF]{2}\d{2}:\d{2}\s(?!(.*加入聊天|.*已收回訊息|.*離開聊天|.*結束了Live talk)).+\s.+/;
+    const regex2 = /\d{4}\/\d{2}\/\d{2}/;
+
+    const daySpeakRecord = new Map();
+    let currentDate =''
+
+    lines.forEach(line => {
+        // 檢查每一行是否包含日期
+        const dayMatch = line.match(regex2);
+        // console.log(dayMatch)
+        if (dayMatch) {
+            const day = dayMatch[0];
+            // console.log(day)
+            if (!daySpeakRecord.has(day)) {
+                daySpeakRecord.set(day, 0);
+                currentDate=day
+            }
+        }
+
+        // 檢查每一行是否包含訊息
+        const quote=line.match(regex)
+        if (quote) {
+            daySpeakRecord.set(currentDate, daySpeakRecord.get(currentDate) + 1);
+        }
+    });
+
+    const sortedRecords = Array.from(daySpeakRecord.entries()).sort((a, b) => b[1] - a[1]);
+    console.log('按照發言次數排序後的統計結果：', sortedRecords);
+}
+
+async function calcJoin(fileContent) {
+    const joinRecord = new Map();
+    let currentDate =''
+    const regex2 = /\d{4}\/\d{2}\/\d{2}/;
+    const lines = fileContent.split('\n');
+    const joinMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,}加入聊天/;
+    // const joinMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,} 加入聊天/;
+    lines.forEach(line => {
+
+        const dayMatch = line.match(regex2);
+        if (dayMatch) {
+            const day = dayMatch[0];
+            // console.log(day)
+            if (!joinRecord.has(day)) {
+              joinRecord.set(day, 0);
+                currentDate=day
+            }
+        }
+        const joinMessage = line.match(joinMessageRegex);
+        if(joinMessage){
+          joinRecord.set(currentDate,joinRecord.get(currentDate)+1)
+        }
+    });
+    console.log(joinRecord)
+
+
+    const sortedRecords = Array.from(joinRecord.entries()).sort((a, b) => b[1] - a[1]);
+    console.log('按照加入次數排序後的統計結果：', sortedRecords);
+
+}
+
+async function calcLeave(fileContent) {
+    const joinRecord = new Map();
+    let currentDate =''
+    const regex2 = /\d{4}\/\d{2}\/\d{2}/;
+    const lines = fileContent.split('\n');
+    const leaveMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,}離開聊天/;
+    // const joinMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,} 加入聊天/;
+    lines.forEach(line => {
+
+        const dayMatch = line.match(regex2);
+        if (dayMatch) {
+            const day = dayMatch[0];
+            // console.log(day)
+            if (!joinRecord.has(day)) {
+              joinRecord.set(day, 0);
+                currentDate=day
+            }
+        }
+        const joinMessage = line.match(leaveMessageRegex);
+        if(joinMessage){
+          joinRecord.set(currentDate,joinRecord.get(currentDate)+1)
+        }
+    });
+    console.log(joinRecord)
+
+
+    const sortedRecords = Array.from(joinRecord.entries()).sort((a, b) => b[1] - a[1]);
+    console.log('按照離開次數排序後的統計結果：', sortedRecords);
 
 }
 
