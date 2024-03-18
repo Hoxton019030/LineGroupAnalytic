@@ -1,17 +1,17 @@
 <template>
     <div>
-      <div>聊天室發言排行榜</div>
+      <div>每日發言統計</div>
       <table>
         <thead>
           <tr>
             <th>排名</th>
-            <th>使用者</th>
-            <th>發言次數</th>
+            <th>日期</th>
+            <th>發言數</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(user, index) in speakerRank" :key="index">
-            <td>{{ index + 1 }}</td>
+          <tr v-for="(user, index) in daySpeakRank" :key="index">
+            <td>{{ index+1 }}</td>
             <td>{{ user[0] }}</td>
             <td>{{ user[1] }}</td>
           </tr>
@@ -28,10 +28,10 @@
   const store = useStore()
   
   // 监视 lineContent 的变化，并更新组件中的 lineContent
-  watch(() => store.state.speakerRank, (newValue) => {
-    speakerRank.value = newValue
+  watch(() => store.state.daySpeakRank, (newValue) => {
+    daySpeakRank.value = newValue
   })
   
-  const speakerRank = ref(store.state.speakerRank)
+  const daySpeakRank = ref(store.state.daySpeakRank)
   </script>
   
