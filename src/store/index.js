@@ -2,6 +2,7 @@ import { createStore } from 'vuex'
 
 export default createStore({
   state: {
+    lineTitle:'',
     lineContent:'',
     speakerRank:''
   },
@@ -11,6 +12,9 @@ export default createStore({
     }
   },
   mutations: {
+    setLineTitle(state,lineTitle){
+      state.lineTitle=lineTitle
+    },
     setLineContent(state,lineContent){
       state.lineContent=lineContent
     },

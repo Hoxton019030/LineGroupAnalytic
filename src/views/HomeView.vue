@@ -38,12 +38,16 @@ const handleFileChange = async (event) => {
 
 async function analyzeChat(fileContent){
   const lines = fileContent.split('\n'); // 将文件内容按行拆分成数组
-  // console.log(lines)
+  //統計每個人的總發言數,Key放人,value做counter
   const speakingRecords =new Map()
-
+  //統計群組每天的對話量,Key放day,value做counter
+  const daySpeakRecord = new Map();
+  //找出對話的正則表達式
+  const messageRegex = /[\u4E00-\u9FFF]{2}\d{2}:\d{2}\s(?!(.*加入聊天|.*已收回訊息|.*離開聊天|.*結束了Live talk)).+\s.+/;
+  store.commit('setLineTitle',lines[0].slice(6,lines[0].length)) 
+  console.log(lines[0].slice(6,lines[0].length))
   lines.forEach(line => {
-    const regex = /[\u4E00-\u9FFF]{2}\d{2}:\d{2}\s(?!(.*加入聊天|.*已收回訊息|.*離開聊天|.*結束了Live talk)).+\s.+/;
-    const match = line.match(regex); // 匹配日期、时间、发言者和发言内容
+    const match = line.match(messageRegex); // 找出對話
     if (match) {
       const quote=match.toString().split('\t')
       const speaker =quote[1]
@@ -62,12 +66,16 @@ async function analyzeChat(fileContent){
       }
     }
   });
-  // alert(speakingRecords.length)
   const sortedRecords = Array.from(speakingRecords.entries())
     .sort((a, b) => b[1] - a[1]); // 根据值大小排序，从大到小
     chatStatic.value = sortedRecords;
   // console.log(sortedRecords)
   return sortedRecords;
+}
+
+function statisticSpeak(lineContent){
+  
+
 
 }
 
