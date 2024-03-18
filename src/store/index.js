@@ -6,7 +6,8 @@ export default createStore({
     lineContent:'',
     speakerRank:'',
     daySpeakRank:'',
-    stickerStatistic:'',
+    stickerCount:'',
+    imageCount:'',
     userJoinStatistic:'',
     userLeaveStatistic:''
   },
@@ -29,13 +30,16 @@ export default createStore({
       state.daySpeakRank=daySpeakRank
     },
     setStickerStatistic(state,stickerStatistic){
-      state.stickerStatistic=stickerStatistic
+      state.stickerCount=stickerStatistic
     },
     setUserJoinStatistic(state,userJoinStatistic){
       state.userJoinStatistic=userJoinStatistic
     },
     setUserLeaveStatistic(state,userLeaveStatistic){
       state.userLeaveStatistic=userLeaveStatistic
+    },
+    setImageStatistic(state,imageCount){
+      state.imageCount=imageCount
     }
 
   },

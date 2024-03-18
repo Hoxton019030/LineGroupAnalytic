@@ -5,11 +5,12 @@
   </div>
   <div v-show="isUploadFile">
     <h1>{{ lineTitle }}</h1>
-    <StickerStatisticVue/>
-    <SpeakStatisticVue/>
-    <DaySpeakStatisticVuefrom/>
-    <UserJoinStatisticVue/>
-    <UserLeaveStatisticVue/>
+    <StickerStatisticVue />
+    <ImageStatisticVue />
+    <SpeakStatisticVue />
+    <DaySpeakStatisticVuefrom />
+    <UserJoinStatisticVue />
+    <UserLeaveStatisticVue />
   </div>
 </template>
 
@@ -20,15 +21,21 @@ import SpeakStatisticVue from './Statistic/SpeakStatistic.vue';
 import StickerStatisticVue from './Statistic/StickerStatistic.vue'
 import UserJoinStatisticVue from './Statistic/UserJoinStatistic.vue'
 import UserLeaveStatisticVue from './Statistic/UserLeaveStatistic.vue'
+import ImageStatisticVue from './Statistic/ImageStatistic.vue'
 
 import { computed, ref } from 'vue'
 import { useStore } from 'vuex';
+import { Segment, useDefault } from 'segmentit'
+
+
 const store = useStore();
 let isUploadFile = ref(false);
 let chatStatic = ref(null)
-let lineTitle =ref('')
+let lineTitle = ref('')
+
 
 const handleFileChange = async (event) => {
+  
   isUploadFile.value = true
   const file = event.target.files[0];
   if (!file) return;
@@ -39,6 +46,9 @@ const handleFileChange = async (event) => {
     const speakerRank = await analyzeChat(lineContent.value)
     store.commit('setSpeakerRank', speakerRank)
   };
+  const segmentit = useDefault(new Segment());
+  const result = segmentit.doSegment('我晚上玩 我今天歡送同事');
+  console.log(result);
   // isUploadFile = true
   reader.readAsText(file);
 };
@@ -65,8 +75,9 @@ async function analyzeChat(fileContent) {
   const leaveMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,}離開聊天/;
 
   let currentDate = ''
-  let stickerStatistic =0;
-  lineTitle.value=lines[0].slice(6, lines[0].length)
+  let stickerCount = 0;
+  let imageCount = 0
+  lineTitle.value = lines[0].slice(6, lines[0].length)
   store.commit('setLineTitle', lines[0].slice(6, lines[0].length))
   console.log(lines[0].slice(6, lines[0].length))
   lines.forEach(line => {
@@ -76,6 +87,11 @@ async function analyzeChat(fileContent) {
       //在這邊先計算每日發言量
       daySpeakRecord.set(currentDate, daySpeakRecord.get(currentDate) + 1)
       const speaker = message.toString().split('\t')[1]
+      //有時有些廢物訊息(通話/邀請)過濾掉
+      if (speaker == "") {
+        console.log(line)
+        return
+      }
       if (!speakingRecords.has(speaker)) {
         speakingRecords.set(speaker, 1)
       } else {
@@ -94,48 +110,60 @@ async function analyzeChat(fileContent) {
       }
     }
     //統計加入人數
-    const joinMessage=line.match(joinMessageRegex)
-   
-    if(joinMessage){
+    const joinMessage = line.match(joinMessageRegex)
+
+    if (joinMessage) {
       // console.log(line)
-      if(!joinRecord.has(currentDate)){
-        joinRecord.set(currentDate,1)
-      }else{
-        joinRecord.set(currentDate,joinRecord.get(currentDate)+1)
+      if (!joinRecord.has(currentDate)) {
+        joinRecord.set(currentDate, 1)
+      } else {
+        joinRecord.set(currentDate, joinRecord.get(currentDate) + 1)
       }
     }
 
-    const leaveMessage=line.match(leaveMessageRegex)
-    if(leaveMessage){
-      if(!leaveRecord.has(currentDate)){
-        leaveRecord.set(currentDate,1)
-      }else{
-        leaveRecord.set(currentDate,leaveRecord.get(currentDate)+1)
+    const leaveMessage = line.match(leaveMessageRegex)
+    if (leaveMessage) {
+      if (!leaveRecord.has(currentDate)) {
+        leaveRecord.set(currentDate, 1)
+      } else {
+        leaveRecord.set(currentDate, leaveRecord.get(currentDate) + 1)
       }
     }
 
     if (line.includes('[貼圖]')) {
-      stickerStatistic++
+      stickerCount++
     }
-    
+    //把貼圖的統計傳給store
+    store.commit('setStickerStatistic', stickerCount)
+
+    if (line.includes('[照片]')) {
+      imageCount++
+    }
+    store.commit('setImageStatistic', stickerCount)
+
   });
-  //把貼圖的統計傳給store
-  store.commit('setStickerStatistic',stickerStatistic)
 
+  //計算發言
   const sortedSpeakingRecords = Array.from(speakingRecords.entries())
-  .filter(([key, value]) => value !== 0)
+    .filter(([key, value]) => value !== 0)
     .sort((a, b) => b[1] - a[1]); // 根据值大小排序，从大到小
-
+  //計算每日發言
   const sortedDaySpeakRecord = Array.from(daySpeakRecord.entries())
-  .filter(([key, value]) => value !== 0)
+    .filter(([key, value]) => value !== 0)
     .sort((a, b) => b[1] - a[1]); // 根据值大小排序，从大到小
   store.commit('setDaySpeakRank', sortedDaySpeakRecord)
-
+  //計算每日加入
   const sortedJoinRecord = Array.from(joinRecord.entries())
-  .filter(([key, value]) => value !== 0)
+    .filter(([key, value]) => value !== 0)
     .sort((a, b) => b[1] - a[1]); // 根据值大小排序，从大到小
   store.commit('setUserJoinStatistic', sortedJoinRecord)
-  
+
+  //計算每日離開
+  const sortedLeaveRecord = Array.from(leaveRecord.entries())
+    .filter(([key, value]) => value !== 0)
+    .sort((a, b) => b[1] - a[1]); // 根据值大小排序，从大到小
+  store.commit('setUserLeaveStatistic', sortedLeaveRecord)
+
   chatStatic.value = sortedSpeakingRecords;
 
   console.log(sortedJoinRecord)
@@ -154,9 +182,6 @@ async function calcSticker(fileContent) {
 
 
 function statisticSpeak(lineContent) {
-
-
-
 }
 
 async function test(fileContent) {
