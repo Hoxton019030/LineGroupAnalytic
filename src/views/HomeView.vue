@@ -1,9 +1,11 @@
 <template>
   <div class="home">
-    <input type="file" name="file" id="" @:change="handleFileChange"  accept="text/plain">
-    <button>送出</button>
+    <input type="file" name="file" id="" @change="handleFileChange" accept="text/plain">
+    <button @click="test1">送出</button>
   </div>
-  <SpeakStatisticVue></SpeakStatisticVue>
+  <div v-show="isUploadFile">
+    <SpeakStatisticVue ></SpeakStatisticVue>
+  </div>
 </template>
 
 
@@ -13,10 +15,11 @@ import { computed, ref } from 'vue'
 import SpeakStatisticVue from './Statistic/SpeakStatistic.vue';
 import { useStore } from 'vuex';
 const store = useStore();
-let fileContent = ref('')
+let isUploadFile = ref(false);
 let chatStatic = ref(null)
 
 const handleFileChange = async (event) => {
+  isUploadFile.value = true
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -25,15 +28,12 @@ const handleFileChange = async (event) => {
     const lineContent = computed(() => store.state.lineContent);
     const speakerRank=await analyzeChat(lineContent.value)
     store.commit('setSpeakerRank',speakerRank)
-    const speakerRank2 = computed(() => store.state.speakerRank);
-    console.log(speakerRank2)
-    // fileContent.value = reader.result;
-    // fileContent=await analyzeChat(reader.result);
-    // calcImage(reader.result)
+    // console.log(typeof isUploadFile)
   };
-
+  // isUploadFile = true
   reader.readAsText(file);
 };
+
 
 
 async function analyzeChat(fileContent){
