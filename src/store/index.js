@@ -7,7 +7,8 @@ export default createStore({
     speakerRank:'',
     daySpeakRank:'',
     stickerStatistic:'',
-    userJoinStatistic:''
+    userJoinStatistic:'',
+    userLeaveStatistic:''
   },
   getters: {
     geLineContent(state){
@@ -32,6 +33,9 @@ export default createStore({
     },
     setUserJoinStatistic(state,userJoinStatistic){
       state.userJoinStatistic=userJoinStatistic
+    },
+    setUserLeaveStatistic(state,userLeaveStatistic){
+      state.userLeaveStatistic=userLeaveStatistic
     }
 
   },

@@ -8,6 +8,8 @@
     <StickerStatisticVue/>
     <SpeakStatisticVue/>
     <DaySpeakStatisticVuefrom/>
+    <UserJoinStatisticVue/>
+    <UserLeaveStatisticVue/>
   </div>
 </template>
 
@@ -16,6 +18,8 @@
 import DaySpeakStatisticVuefrom from './Statistic/DaySpeakStatistic.vue';
 import SpeakStatisticVue from './Statistic/SpeakStatistic.vue';
 import StickerStatisticVue from './Statistic/StickerStatistic.vue'
+import UserJoinStatisticVue from './Statistic/UserJoinStatistic.vue'
+import UserLeaveStatisticVue from './Statistic/UserLeaveStatistic.vue'
 
 import { computed, ref } from 'vue'
 import { useStore } from 'vuex';
@@ -34,7 +38,6 @@ const handleFileChange = async (event) => {
     const lineContent = computed(() => store.state.lineContent);
     const speakerRank = await analyzeChat(lineContent.value)
     store.commit('setSpeakerRank', speakerRank)
-    // console.log(typeof isUploadFile)
   };
   // isUploadFile = true
   reader.readAsText(file);
@@ -48,10 +51,18 @@ async function analyzeChat(fileContent) {
   const speakingRecords = new Map()
   //統計群組每天的對話量,Key放day,value做counter
   const daySpeakRecord = new Map();
+  //統計群組每天加入的人
+  const joinRecord = new Map();
+  //統計群組每天離開的人
+  const leaveRecord = new Map();
   //找出對話的正則表達式
   const messageRegex = /[\u4E00-\u9FFF]{2}\d{2}:\d{2}\s(?!(.*加入聊天|.*已收回訊息|.*離開聊天|.*結束了Live talk)).+\s.+/;
   //找出日期目錄的正則表達式2023/02/27（一）
   const dateRegex = /\d{4}\/\d{2}\/\d{2}/;
+  //找出加入聊天的正則表達式
+  const joinMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,}加入聊天/;
+  // 找出離開聊天室的正則表達式
+  const leaveMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,}離開聊天/;
 
   let currentDate = ''
   let stickerStatistic =0;
@@ -82,9 +93,31 @@ async function analyzeChat(fileContent) {
         currentDate = day
       }
     }
+    //統計加入人數
+    const joinMessage=line.match(joinMessageRegex)
+   
+    if(joinMessage){
+      // console.log(line)
+      if(!joinRecord.has(currentDate)){
+        joinRecord.set(currentDate,1)
+      }else{
+        joinRecord.set(currentDate,joinRecord.get(currentDate)+1)
+      }
+    }
+
+    const leaveMessage=line.match(leaveMessageRegex)
+    if(leaveMessage){
+      if(!leaveRecord.has(currentDate)){
+        leaveRecord.set(currentDate,1)
+      }else{
+        leaveRecord.set(currentDate,leaveRecord.get(currentDate)+1)
+      }
+    }
+
     if (line.includes('[貼圖]')) {
       stickerStatistic++
     }
+    
   });
   //把貼圖的統計傳給store
   store.commit('setStickerStatistic',stickerStatistic)
@@ -92,13 +125,20 @@ async function analyzeChat(fileContent) {
   const sortedSpeakingRecords = Array.from(speakingRecords.entries())
   .filter(([key, value]) => value !== 0)
     .sort((a, b) => b[1] - a[1]); // 根据值大小排序，从大到小
+
   const sortedDaySpeakRecord = Array.from(daySpeakRecord.entries())
   .filter(([key, value]) => value !== 0)
     .sort((a, b) => b[1] - a[1]); // 根据值大小排序，从大到小
   store.commit('setDaySpeakRank', sortedDaySpeakRecord)
+
+  const sortedJoinRecord = Array.from(joinRecord.entries())
+  .filter(([key, value]) => value !== 0)
+    .sort((a, b) => b[1] - a[1]); // 根据值大小排序，从大到小
+  store.commit('setUserJoinStatistic', sortedJoinRecord)
+  
   chatStatic.value = sortedSpeakingRecords;
 
-  // console.log(sortedRecords)
+  console.log(sortedJoinRecord)
   return sortedSpeakingRecords;
 }
 
@@ -110,8 +150,6 @@ async function calcSticker(fileContent) {
       stickerCount++
     }
   });
-  console.log('貼圖總共有' + stickerCount)
-
 }
 
 

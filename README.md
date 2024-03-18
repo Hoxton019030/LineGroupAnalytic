@@ -1,5 +1,8 @@
 # line-grounp-analytic
 
+預計加的功能，統計每人發言、照片、圖片
+
+
 ## Project setup
 ```
 npm install

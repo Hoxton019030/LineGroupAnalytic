@@ -1,6 +1,6 @@
 <template>
     <div>
-      <div>每日加入統計</div>
+      <div>每日離開統計</div>
       <table>
         <thead>
           <tr>
@@ -10,7 +10,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(user, index) in userJoinStatistic" :key="index">
+          <tr v-for="(user, index) in userLeaveStatistic" :key="index">
             <td>{{ index+1 }}</td>
             <td>{{ user[0] }}</td>
             <td>{{ user[1] }}</td>
@@ -28,10 +28,10 @@
   const store = useStore()
   
   // 监视 lineContent 的变化，并更新组件中的 lineContent
-  watch(() => store.state.userJoinStatistic, (newValue) => {
-    userJoinStatistic.value = newValue
+  watch(() => store.state.userLeaveStatistic, (newValue) => {
+    userLeaveStatistic.value = newValue
   })
   
-  const userJoinStatistic = ref(store.state.userJoinStatistic)
+  const userLeaveStatistic = ref(store.state.userLeaveStatistic)
   </script>
   
