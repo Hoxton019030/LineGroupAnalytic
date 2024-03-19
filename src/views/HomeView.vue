@@ -25,7 +25,6 @@ import ImageStatisticVue from './Statistic/ImageStatistic.vue'
 
 import { computed, ref } from 'vue'
 import { useStore } from 'vuex';
-import { Segment, useDefault } from 'segmentit'
 
 
 const store = useStore();
@@ -46,8 +45,6 @@ const handleFileChange = async (event) => {
     const speakerRank = await analyzeChat(lineContent.value)
     store.commit('setSpeakerRank', speakerRank)
   };
-  const segmentit = useDefault(new Segment());
-  const result = segmentit.doSegment('我晚上玩 我今天歡送同事');
   // console.log(result);
   // isUploadFile = true
   reader.readAsText(file);
