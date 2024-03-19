@@ -65,7 +65,7 @@ async function analyzeChat(fileContent) {
   //找出對話的正則表達式
   const messageRegex = /[\u4E00-\u9FFF]{2}\d{2}:\d{2}\s(?!(.*加入聊天|.*已收回訊息|.*離開聊天|.*結束了Live talk)).+\s.+/;
   //找出日期目錄的正則表達式2023/02/27（一）
-  const dateRegex = /\d{4}\/\d{2}\/\d{2}/;
+  const dateRegex = /^\d{4}\/\d{2}\/\d{2}/;
   //找出加入聊天的正則表達式
   const joinMessageRegex = /^[\u4E00-\u9FFF]{2}\w{2}:\w{2}\s\s\w{1,}加入聊天/;
   // 找出離開聊天室的正則表達式
