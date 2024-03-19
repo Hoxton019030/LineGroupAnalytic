@@ -30,67 +30,74 @@ import { ref } from 'vue';
 const store = useStore()
 let start = ref(false);
 var find = ref(true)
-const dateRegex = /\d{4}\/\d{2}\/\d{2}/;
+const dateRegex = /^\d{4}\/\d{2}\/\d{2}/;
 
 function renderDailySpeakStatisticComponent(day) {
     const lineContent = computed(() => store.state.lineContent).value;
     const lines = lineContent.split('\n');
-let count =0
-
-
+    //把當天的訊息存成dailyMessage
+    let dailyMessage = ''
+    let count = 0
     lines.forEach((line, index) => {
-        let userMessage = ''
-        //一開始是false不會執行這邊
+        // const day = line.match(dateRegex)
         if (start.value) {
-            const messageArray = line.split('\t');
-            var message = messageArray[2]
-            if(message==undefined){
-                // start.value=false
-                return
-            }
-            if(message.includes('離開聊天')){
-                return
-            }
-            if (message.startsWith(`"`)) {
-                userMessage += messageArray[2];
-                let nextIndex = index + 1;
-                while (find.value) {
-                    const nextLine = lines[nextIndex];
-                    if (nextLine.includes(`"`)) {
-                        userMessage += lines[nextIndex]
-                        find.value = false
-                        console.log(userMessage)
-                        count+=1
-                    } else {
-                        userMessage += lines[nextIndex]
-                        nextIndex += 1
-                    }
-                }
-                find.value=true
-            }else{
-                messageArray[0]
-                userMessage=messageArray[2]
-                console.log(userMessage)
-                count+=1
-            }
-            
-            if (line.match(dateRegex)) {
+            var space = /^\s/
+            const nextDay = line.match(space)
+            if (nextDay) {
                 start.value = false
+                return
             }
-        }
-        if(line==undefined){
-            console.log("三小")
-            start.value = true
-            return
+            // console.log(line)
+            dailyMessage += line + '\n'
         }
         if (line.startsWith(day)) {
-            // console.log(line)
             start.value = true
+            console.log(day)
         }
     })
-    
-    console.log(count)
+
+    const dailyMessageArray = dailyMessage.split('\n');
+    dailyMessageArray.pop()
+    // console.log(dailyMessageArray)
+
+    let userMessage = ''
+
+    dailyMessageArray.forEach((message, index) => {
+
+        const messageArray = message.split('\t')
+        console.log(messageArray)
+        // if(messageArray[2]==undefined){
+        //     return
+        // }
+        if (messageArray[2] && messageArray[2].startsWith(`"`)) {
+            // console.log(dailyMessageArray)
+            // console.log('句子: '+ messageArray[2])
+            userMessage += messageArray[2];
+            let nextIndex = index + 1;
+
+            while (find.value) {
+                const nextLine = lines[nextIndex];
+                if (nextLine.includes(`"`)) {
+                    userMessage += lines[nextIndex]
+                    find.value = false
+                    // console.log(userMessage)
+                    break;
+                } else {
+                    userMessage += lines[nextIndex]
+                    nextIndex += 1
+                }
+            }
+            find.value = true
+        } else {
+            messageArray[0]
+            userMessage = messageArray[2]
+        }
+
+    })
+    console.log(userMessage)
+    // console.log(userMessage)
 }
+
 
 // 监视 lineContent 的变化，并更新组件中的 lineContent
 watch(() => store.state.daySpeakRank, (newValue) => {

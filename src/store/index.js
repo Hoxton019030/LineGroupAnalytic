@@ -46,5 +46,8 @@ export default createStore({
   actions: {
   },
   modules: {
+    generatorLineArray(lineConent){
+      
+    }
   }
 })
