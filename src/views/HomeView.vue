@@ -9,8 +9,8 @@
     <ImageStatisticVue />
     <SpeakStatisticVue />
     <DaySpeakStatisticVuefrom />
-    <UserJoinStatisticVue />
-    <UserLeaveStatisticVue />
+    <!-- <UserJoinStatisticVue />
+    <UserLeaveStatisticVue /> -->
   </div>
 </template>
 
@@ -48,7 +48,7 @@ const handleFileChange = async (event) => {
   };
   const segmentit = useDefault(new Segment());
   const result = segmentit.doSegment('我晚上玩 我今天歡送同事');
-  console.log(result);
+  // console.log(result);
   // isUploadFile = true
   reader.readAsText(file);
 };
@@ -99,7 +99,7 @@ async function analyzeChat(fileContent) {
         speakingRecords.set(speaker, count + 1)
       }
     }
-    //統計日期
+    //統計每日的總發言量
     const date = line.match(dateRegex)
     if (date) {
       const day = date[0];
