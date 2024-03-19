@@ -35,32 +35,49 @@ const dateRegex = /^\d{4}\/\d{2}\/\d{2}/;
 function renderDailySpeakStatisticComponent(day) {
     const lineContent = computed(() => store.state.lineContent).value;
     const lines = lineContent.split('\n');
-    console.log('fuck')
+    // console.log('fuck')
     //把當天的訊息存成dailyMessage
     let dailyMessage = ''
     let count = 0
     lines.forEach((line, index) => {
         // const day = line.match(dateRegex)
         if (start.value) {
-            const lineArray=line.split('\t')
+            const lineArray = line.split('\t')
+            let userMessage = ''
             // console.log(lineArray)
-            if(lineArray[2]){
+            if (lineArray[2]) {
                 //代表是多行
-                if(lineArray[2].startsWith('"')){
-                    let currentIndex =index
-                    let userMessage=''
-                    let findIt=true
-                    console.log(lineArray[2])
-                    while(findIt){
-                        currentIndex+=1
-                        userMessage = line[currentIndex]
-                        console.log(userMessage)
-                        if(lineArray[0].includes('"')){
-                            findIt =false
+                if (lineArray[2].startsWith('"')) {
+                    userMessage += lineArray[2];
+                    let nextIndex = index + 1;
+                    while (find.value) {
+                        const nextLine = lines[nextIndex];
+                        if (nextLine.includes(`"`)) {
+                            userMessage += lines[nextIndex]
+                            find.value = false
+                            // console.log(userMessage)
+                            break;
+                        } else {
+                            userMessage += lines[nextIndex]
+                            nextIndex += 1
                         }
                     }
-                    console.log(userMessage)
+                    find.value=true
+                    // console.log(lineArray[2])
+                    // while(findIt){
+                    //     currentIndex+=1
+                    //     userMessage = line[currentIndex]
+                    //     console.log(userMessage)
+                    //     if(lineArray[0].includes('"')){
+                    //         findIt =false
+                    //     }
+                    // }
+                    // console.log(userMessage)
+                }else{
+                    // messageArray[0]
+                    userMessage=lineArray[2]
                 }
+                console.log(userMessage)
             }
             // if(lineArray.length==3)
             // if(lineArray[1]==''){
@@ -77,7 +94,7 @@ function renderDailySpeakStatisticComponent(day) {
         }
         if (line.startsWith(day)) {
             start.value = true
-            console.log(day)
+            // console.log(day)
         }
     })
     // console.log(dailyMessage)
